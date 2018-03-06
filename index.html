@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <link href="https://fonts.googleapis.com/css?family=Raleway" rel="stylesheet">
+    <script src="./bower_components/webcomponentsjs/webcomponents-lite.min.js"></script>
+    <script
+            src="https://code.jquery.com/jquery-3.1.1.min.js"
+            integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+            crossorigin="anonymous"></script>
+
+    <link rel="import" href="./bower_components/polymer/polymer.html">
+    <link rel="import" href="./bower_components/webaudio-controls/webaudio-controls.html">
+    <link rel="stylesheet" href="StyleSheet.css">
+    <link rel="import" href="pedal_models/pedal.html">
+
+
+    <link rel="import" href="blue.html">
+    <script src="js/bootstrap.min.js"></script>
+    <script src="jscolor.js"></script>
+
+    <link href="https://fonts.googleapis.com/css?family=Abril+Fatface|Belgrano|Bevan|Bungee+Inline|Bungee+Shade|Calligraffitti|Mogra|Nothing+You+Could+Do|Orbitron|Pangolin|Rock+Salt|Sansita|Shojumaru|UnifrakturMaguntia|VT323"
+          rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    <title>Pedal Creator 0.1</title>
+</head>
+<body>
+
+<div class="container-fluid componentSection">
+    <h2 class="component-title">Inspector<i class="fa fa-caret-square-o-up displayer" aria-hidden="true"></i></span>
+    </h2>
+
+    <div>
+
+    </div>
+
+
+</div>
+
+<div class="pedalSection">
+    <my-pedal 
+        color="red" 
+        width="150" 
+        height="300" 
+        radius="20">
+</my-pedal>
+</div>
+
+<div class="componentSection-right">
+
+    <div class="menuOptions">
+        <label>Background color: #</label>
+        <input id="background-color-picker"class="jscolor" onchange="setPedalColor(this.value)">
+
+        <br>
+
+        <label>Width: </label>
+        <input id="width" class="fontsizeselector" type="number" name="width" onchange="setPedalWidth(this.value)"
+               min="0" max="600"> px
+
+        <br>
+
+        <label>Height: </label>
+        <input id="height" class="fontsizeselector" type="number" name="height" onchange="setPedalHeight(this.value)"
+               min="0" max="600"> px
+
+        <br>
+
+        <label>Radius: </label>
+        <input id="radius" class="fontsizeselector" type="number" name="radius" onchange="setPedalRadius(this.value)"
+                min="0" max="25"> px
+        <br>
+
+        <button onclick="addKnob()">Add knob</button>
+    </div>
+
+    <!-- Pedal font color menu -->
+    <h2 class="component-title">
+        Knobs<i class="fa fa-caret-square-o-up displayer" aria-hidden="true"></i>
+    </h2>
+
+    <div id="knobs_section" class="menuOptions">
+    </div>
+
+    <!-- Knob font size menu -->
+    <h2 class="component-title">Switches<i class="fa fa-caret-square-o-up displayer" aria-hidden="true"></i></h2>
+
+    <div class="menuOptions">
+    </div>
+
+    <h2 class="component-title">Labels<i class="fa fa-caret-square-o-up displayer" aria-hidden="false"></i></h2>
+
+    <div class="menuOptions">
+        
+    </div>
+
+</div>
+
+<button id="buttonDownload" onclick="downloadPedal()">Download pedal !</button>
+
+</body>
+<script>
+
+    var url = "http://localhost:8085";
+    var http = new XMLHttpRequest();
+    var path = "/pedale";
+
+    var section = document.getElementsByClassName("pedalSection")[0];
+    var pedal = getFirstChild(section);
+    //pedal.style.zoom="1.5";
+    var knobSprite;
+    var switchSprite;
+    var defaultPedalColor = "FFD680";
+    var pedalFontColor;
+    var knobFontSize;
+    var pedalFontSize;
+    var pedalFont;
+    var defaultWidth = 300;
+    var defaultHeight = 300;
+    var defaultRadius = 10;
+
+    initialize();
+
+    function initialize() {
+        document.getElementById("background-color-picker").value = "#" + defaultPedalColor;
+        document.getElementById("width").value = defaultWidth;
+        document.getElementById("height").value = defaultHeight;
+        document.getElementById("radius").value = defaultRadius;
+        setPedalColor(defaultPedalColor);
+        setPedalWidth(defaultWidth);
+        setPedalHeight(defaultHeight);
+        setPedalRadius(defaultRadius);
+
+        updateKnobsSection();
+
+    }
+
+    function updateKnobsSection() {
+        console.log(pedal.getKnobs());
+        var knobsSection = document.getElementById('knobs_section');
+        
+        while(document.getElementById('knobs_section').firstChild) {
+            knobsSection.removeChild(knobsSection.firstChild);
+        }
+
+        for(var knob of pedal.getKnobs()) {
+            var knobId = document.createElement('p');
+            knobId.innerHTML = knob.id;
+            knobsSection.appendChild(knobId);
+        }
+    }
+
+    function addKnob() {
+        pedal.addKnob();
+        updateKnobsSection();
+    }
+
+    function changePedal(type){
+        section.removeChild(pedal);
+        var newPedal = document.createElement("PEDAL-"+type);
+        section.appendChild(newPedal);
+        pedal=getFirstChild(section);
+        pedal.style.zoom="1.5";
+
+        document.getElementById("fontColor-picker");
+
+    }
+
+    function setPedalColor(value) {
+        pedal.setAttribute("color", "#" + value);
+    }
+
+    function setPedalWidth(width) {
+        pedal.setAttribute("width", width);
+    }
+
+    function setPedalHeight(height) {
+        pedal.setAttribute("height", height);
+    }
+
+    function setPedalRadius(radius) {
+        pedal.setAttribute("radius", radius);
+    }
+
+    function setPedalFontColor(value) {
+        pedal.changeFontColor(value);
+        pedalFontColor = value;
+    }
+
+
+    function changeKnob(knobName) {
+        pedal.changeKnob(knobName);
+        knobSprite = knobName;
+    }
+
+    function changeSwitch(switchName) {
+        pedal.changeSwitch(switchName);
+        switchSprite=switchName;
+    }
+
+    function getFirstChild(el) {
+        var firstChild = el.firstChild;
+        while (firstChild != null && firstChild.nodeType == 3) { // skip TextNodes
+            firstChild = firstChild.nextSibling;
+        }
+        return firstChild;
+    }
+
+    function changeFont(font) {
+        pedal.changeFont(font);
+        pedalFont = font;
+    }
+
+    function changeKnobFontSize(fontsize) {
+        pedal.changeKnobFontSize(fontsize);
+        knobFontSize = fontsize;
+    }
+
+    function changePedalFontSize(fontsize) {
+        pedal.changePedalFontSize(fontsize);
+        pedalFontSize = fontsize;
+    }
+
+    var els = document.getElementsByClassName("displayer");
+    [].forEach.call(els, function (el) {
+        el.addEventListener('click', function (e) {
+            var nextSibling = el.parentNode.nextSibling;
+            while (nextSibling.nodeName != "DIV") {
+                nextSibling = nextSibling.nextSibling;
+            }
+            if (this.classList.contains("fa-caret-square-o-up")) {
+                nextSibling.style.display = 'none';
+                this.classList.remove("fa-caret-square-o-up");
+                this.classList.add("fa-caret-square-o-down");
+            }
+            else if (this.classList.contains("fa-caret-square-o-down")) {
+                nextSibling.style.display = 'block';
+                this.classList.remove("fa-caret-square-o-down");
+                this.classList.add("fa-caret-square-o-up");
+            }
+        }, false);
+    });
+
+    function downloadPedal(){
+        var pedalData = {};
+        pedalData.name = pedal.getName();
+        pedalData.type = pedal.getType();
+        pedalData.knobLabels = pedal.getKnobsNames();
+        pedalData.knobSprite = pedal.getKnobSprite();
+        pedalData.switchSprite = pedal.getSwitchSprite();
+        pedalData.color = pedal.getPedalColor();
+        pedalData.fontColor = pedal.getFontColor();
+        pedalData.fontSize = pedal.getPedalFontSize();
+        pedalData.knobFontSize = pedal.getKnobFontSize();
+        pedalData.font = pedal.getFont();
+        console.log(JSON.stringify(pedalData));
+
+        http.open("POST", url+path, true);
+        http.setRequestHeader("Content-type", "application/json; charset=utf-8");
+        http.withCredentials = true;
+
+        http.onreadystatechange = function () {
+            if (http.readyState == 4 && http.status == 200) {
+
+            }else if (http.status == 400){
+                console.log(http.responseText);
+            }
+        };
+        http.send(JSON.stringify(pedalData));
+        //window.location.replace("/editor/code.html");
+    }
+
+    function setBackgroundColor(value){
+        document.body.style.backgroundColor = "#"+value;
+    }
+
+</script>
+</html>

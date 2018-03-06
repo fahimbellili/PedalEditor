@@ -1,0 +1,185 @@
+<!-- Defines element markup -->
+<template>
+    <style>
+       
+    </style>
+
+	<div class="pedal">
+		
+		<!-- <p class="knob-label" id="knob1-label" contenteditable="true">FREQ</p> -->
+		<webaudio-switch src="../img/switches/switch_1.png" class="switch" id="switch1" height="64" width="128"></webaudio-switch>
+		<p class="pedalLabel" contenteditable="true">LOW PASS</p>
+	</div>
+
+    
+</template>
+
+<script>
+    (function(window, document, undefined) {
+    
+        // Refers to the "importer", which is index.html
+        var thatDoc = document;
+
+        // Refers to the "importee", which is vimeo-embed.html
+        var thisDoc = (thatDoc._currentScript || thatDoc.currentScript).ownerDocument;
+
+        // Gets content from <template>.
+        var template = thisDoc.querySelector( 'template' );
+		
+
+        // Shim Shadow DOM styles if needed
+        if (window.ShadowDOMPolyfill) {
+            WebComponents.ShadowCSS.shimStyling(template.content, 'pedal');
+        }
+		
+        class Pedal extends HTMLElement {
+
+			static get observedAttributes() {
+    			return ['color', 'width', 'height', 'radius'];
+  			}
+			
+
+            constructor(wi) {
+                super();
+				this.knobs = [];
+				
+            }
+
+
+			
+			addKnob() {
+				var knob = {
+					id: "knob_"+this.knobs.length
+				};
+				this.knobs.push(knob);
+
+				var knobElem = thatDoc.createElement("webaudio-knob");
+				knobElem.setAttribute('sprites', 99);
+				knobElem.setAttribute('value', 0);
+				knobElem.setAttribute('step', 1);
+				knobElem.setAttribute('src', '../img/knobs/nux_yellow_not_stripped.png');
+				knobElem.setAttribute('class', 'knob');
+				knobElem.setAttribute('id', knob.id);
+				//console.log(knobElem);
+				
+				//template.querySelector('.pedal').content.appendChild("knobElem");
+				this.shadowRoot.querySelector('.pedal').appendChild(knobElem);
+			}
+
+			getKnobs() {
+				return this.knobs;
+			}
+
+            connectedCallback() {
+                var shadowRoot = this.attachShadow({mode:'open'});
+    
+                var clone = thatDoc.importNode( template.content, true );
+                shadowRoot.appendChild(clone);
+				this.updateStyle(this);
+            }
+
+			updateCurrentButton() {
+
+			}
+
+			selectButton() {
+
+			}
+
+			updateStyle(elem) {
+				var shadow = elem.shadowRoot;
+				var childNodes = shadow.childNodes;
+				for(var childNode of childNodes) {
+					if(childNode.nodeName === 'STYLE') {
+						childNode.textContent = `
+							.pedal{
+								display: block;
+								background-color: ${this.getAttribute('color')};
+								width: ${this.getAttribute('width')}px;
+								height: ${this.getAttribute('height')}px;
+								border-radius: ${this.getAttribute('radius')}px;
+								box-shadow: inset -3px -3px 3px 5px rgba(0, 0, 0, 0.6), inset 3px 3px 3px 5px rgba( 255, 255, 255, 0.5);
+								position: fixed;
+								top: 40%;
+								left: 50%;
+								/* bring your own prefixes */
+								transform: translate(-50%, -50%);
+							}`
+							+
+							`
+							.knob, .switch{
+								position: absolute;
+								border: 0px;
+							}
+							#switch1 {
+								bottom: 30px;
+							}
+							#knob_0{
+								top: 30px;
+								left: 43px;
+							}
+							#knob_1{
+								top: 30px;
+								left:110px;
+							}
+							#knob_2{
+								top: 30px;
+								left: 180px;
+							}
+
+							#knob_3{
+								top: 110px;
+								left: 43px;
+							}
+
+							#knob_4{
+								top: 110px;
+								left: 110px;
+							}
+
+							#knob_5{
+								top: 110px;
+								left: 180px;
+							}
+
+							#switch_2{
+								top: 30px;
+								left: 150px;
+							}
+							.pedalLabel{
+								position: absolute;
+								top: 225px;
+								font-size: 25px;
+								font-family: Sansita;/*{font}*/
+								text-align: center;
+								line-height: 30px;/*{pedalfontsize}*/
+								width: 150px;
+								color: #6B0000;/*{fontcolor}*/
+							}
+							.knob-label{
+								position: absolute;
+								font-size: 12px;/*{knobfontsize}*/
+								line-height: 12px;
+								width:64px;
+								max-width:64px;
+								overflow: hidden;
+								text-align: center;
+								font-family: Sansita;/*{font}*/
+								color: #6B0000;/*{fontcolor}*/
+							}
+							#knob1-label{
+								top: 84px;
+								left: 43px;
+							}`;
+					}
+				}
+			}
+			
+			attributeChangedCallback(name, oldValue, newValue) {
+  				this.updateStyle(this);
+			}
+
+        }
+        window.customElements.define('my-pedal', Pedal);
+    })(window, document);
+</script>

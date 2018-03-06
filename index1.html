@@ -1,0 +1,190 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title></title>
+	<meta charset="utf-8" />
+    <script src="js/jquery-3.1.1.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/nexusUI.js"></script>
+
+    <script>
+        nx.colorize("#00ff66") // changes the accent color by default
+        nx.colorize("border", "#000000") // changes the border color
+    </script>
+    <link href="StyleSheet.css" rel="stylesheet" />
+</head>
+<body >
+    <div class="container-fluid componentSection">
+
+        <!--<div class="row">-->
+
+            <!--<canvas class="col-sm-4 dial" nx="dial"  style="width: 75px; height: 75px;"></canvas>-->
+            <!--&lt;!&ndash;<canvas class="col-sm-4" nx="slider" id="slider" style="width: 75px; height: 75px;"></canvas>&ndash;&gt;-->
+            <!--&lt;!&ndash;<canvas class="col-sm-4" nx="toggle" id="toggle" style="width: 75px; height: 75px;"></canvas>&ndash;&gt;-->
+        <!--</div>-->
+        <!--<div class="row">-->
+            <!--<canvas class="col-sm-4" nx="button" id="button" style="width: 75px; height: 75px;"></canvas>-->
+            <!--<canvas class="col-sm-8" nx="multislider" id="multislider" style="width: 150px; height: 75px;"></canvas>-->
+        <!--</div>-->
+        <!--<div class="row">-->
+            <!--<canvas class="col-sm-12" nx="envelope" id="envelope" style="width: 225px; height: 75px;"></canvas>-->
+        <!--</div>-->
+    </div>
+    <div class="pedalSection">
+        <boss-pedal color="red"></boss-pedal>
+<!--        <div class="cell"></div>
+        <div class="cell"></div>
+        <div class="cell"></div>
+        <div class="cell"></div>
+        <div class="cell"></div>
+        <div class="cell"></div>
+        <div class="cell"></div>-->
+    </div>
+</body>
+
+<script>
+    var mousePosition;
+    var offset = [0,0];
+    var div;
+    var isDown = false;
+
+    
+    initializeDragAndDrop($(".dial")[0]);
+//    initializeDragAndDrop(document.getElementById("slider"));
+//    initializeDragAndDrop(document.getElementById("toggle"));
+//    initializeDragAndDrop(document.getElementById("multislider"));
+//    initializeDragAndDrop(document.getElementById("envelope"));
+//    initializeDragAndDrop(document.getElementById("button"));
+
+    div = document.createElement("div");
+    div.style.position = "absolute";
+    div.style.left = "100px";
+    div.style.top = "100px";
+    div.style.width = "75px";
+    div.style.height = "75px";
+    div.style.background = "red";
+    div.style.color = "blue";
+    div.style.zIndex = "1";
+    initializeDragAndDrop(div);
+    document.body.appendChild(div);
+    function initializeDragAndDrop(div) {
+
+        div.addEventListener('mousedown', function (e) {
+            var elements = allElementsFromPoint(e.clientX, e.clientY);
+            if (!$(elements[1]).hasClass("cell")) {
+                var newdiv = cloneCanvas(div);
+                newdiv.style.left=div.style.left;
+                newdiv.style.top=div.style.top;
+                newdiv.style.width=div.style.width;
+                newdiv.style.height=div.style.height;
+
+                initializeDragAndDrop(newdiv);
+                $(newdiv).appendTo("body");
+                $(newdiv).attr("mousedown", "true");
+            }
+            else {
+                $(div).attr("mousedown", "true");
+                div.style.zIndex = "2";
+            }
+            offset = [
+                div.offsetLeft - e.clientX,
+                div.offsetTop - e.clientY
+            ];
+
+            console.log($(div).attr("mousedown"));
+            console.log(div.style.zIndex);
+
+        }, true);
+
+        div.addEventListener('mouseup', function (e) {
+            $(div).attr("mousedown", "false");
+            var cell=mouseAboveCell(e.clientX,e.clientY);
+            if(!(cell)){
+                console.log("élément effac");
+                $(div).hide();
+            }
+            else{
+                var rect = cell.getBoundingClientRect();
+                div.style.left = (rect.left + 1) + 'px';
+                div.style.top = (rect.top + 1) + 'px';
+            }
+            /*var elements = allElementsFromPoint(mousePosition.x, mousePosition.y);
+            var rect = elements[0].getBoundingClientRect();
+            console.log(elements[1]);
+            div.style.left = (rect.left + 1) + 'px';
+            div.style.top = (rect.top + 1) + 'px';
+            if (!$(elements[1]).hasClass("cell")) {
+                $(div).hide();
+            }*/
+            console.log($(div).attr("mousedown"));
+            div.style.zIndex = "1";
+        }, true);
+
+
+        div.addEventListener('mousemove', function (event) {
+            event.preventDefault();
+            if ($(div).attr("mousedown") === "true") {
+                mousePosition = {
+
+                    x: event.clientX,
+                    y: event.clientY
+
+                };
+                div.style.left = (mousePosition.x + offset[0]) + 'px';
+                div.style.top = (mousePosition.y + offset[1]) + 'px';
+            }
+        }, true);
+    }
+
+
+
+    function allElementsFromPoint(x, y) {
+        var element, elements = [];
+        var old_visibility = [];
+        while (true) {
+            element = document.elementFromPoint(x, y);
+            if (!element || element === document.documentElement) {
+                break;
+            }
+            elements.push(element);
+            old_visibility.push(element.style.visibility);
+            element.style.visibility = 'hidden'; // Temporarily hide the element (without changing the layout)
+        }
+        for (var k = 0; k < elements.length; k++) {
+            elements[k].style.visibility = old_visibility[k];
+        }
+        elements.reverse();
+        return elements;
+    }
+
+    function mouseAboveCell(x,y){
+        var elements = allElementsFromPoint(x, y);
+        var arrayLength = elements.length;
+        for (var i = 0; i < arrayLength; i++) {
+            if ($(elements[i]).hasClass("cell")){
+                return elements[i];
+            }
+        }
+        return false;
+    }
+
+    function cloneCanvas(oldCanvas) {
+
+        //create a new canvas
+        var newCanvas = document.createElement('canvas');
+        var context = newCanvas.getContext('2d');
+
+        //set dimensions
+        newCanvas.width = oldCanvas.width;
+        newCanvas.height = oldCanvas.height;
+
+        //apply the old canvas to the new one
+        context.drawImage(oldCanvas, 0, 0);
+
+        //return the new canvas
+        return newCanvas;
+    }
+
+</script>
+</html>
